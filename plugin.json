@@ -1,0 +1,15 @@
+{
+  "KPlugin": {
+    "Id": "imagepreviewplugin",
+    "Name": "Image Preview",
+    "Description": "Preview images like PNG and JPG inside Kate",
+    "Version": "1.0",
+    "Authors": [
+      {
+        "Name": "Ilia Prokhorov",
+        "Email": "demensdeum@gmail.com"
+      }
+    ],
+    "License": "MIT"
+  }
+}
