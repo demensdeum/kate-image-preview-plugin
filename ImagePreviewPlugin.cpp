@@ -8,7 +8,7 @@
 #include <QResizeEvent>
 #include <KTextEditor/Document>
 #include <KTextEditor/View>
-
+#include <QImageReader>
 #include <QMainWindow>
 
 K_PLUGIN_FACTORY_WITH_JSON(ImagePreviewPluginFactory, "plugin.json", registerPlugin<ImagePreviewPlugin>();)
@@ -49,26 +49,32 @@ void ImagePreviewPluginView::onViewChanged(KTextEditor::View *view)
     if (!view || !view->document())
         return;
 
+    static const QSet<QString> supportedFormats = []() {
+        QSet<QString> formats;
+        for (const QByteArray &fmt : QImageReader::supportedImageFormats()) {
+            formats.insert(QString::fromLatin1(fmt).toLower());
+        }
+        return formats;
+    }();
+
     const QString filePath = view->document()->url().toLocalFile();
     QFileInfo fi(filePath);
-    if (fi.suffix().compare(QStringLiteral("png"), Qt::CaseInsensitive) == 0 ||
-        fi.suffix().compare(QStringLiteral("jpg"), Qt::CaseInsensitive) == 0 ||
-        fi.suffix().compare(QStringLiteral("jpeg"), Qt::CaseInsensitive) == 0 ||
-        fi.suffix().compare(QStringLiteral("gif"), Qt::CaseInsensitive) == 0) {
+    const QString suffix = fi.suffix().toLower();
 
+    if (supportedFormats.contains(suffix)) {
         m_originalPixmap = QPixmap(filePath);
 
-    if (!m_originalPixmap.isNull()) {
-        m_imageLabel->setPixmap(m_originalPixmap.scaled(
-            m_toolview->size(),
-                                                        Qt::KeepAspectRatio,
-                                                        Qt::SmoothTransformation
-        ));
-        m_toolview->show();
-    }
-        } else {
-            m_toolview->hide();
+        if (!m_originalPixmap.isNull()) {
+            m_imageLabel->setPixmap(m_originalPixmap.scaled(
+                m_imageLabel->size(),
+                                                            Qt::KeepAspectRatio,
+                                                            Qt::SmoothTransformation
+            ));
+            m_toolview->show();
         }
+    } else {
+        m_toolview->hide();
+    }
 }
 
 bool ImagePreviewPluginView::eventFilter(QObject *obj, QEvent *event)
